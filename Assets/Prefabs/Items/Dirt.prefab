@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 3946574861162382594}
   - component: {fileID: 8607188948042070586}
   m_Layer: 5
-  m_Name: Stone
+  m_Name: Dirt
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -201,7 +201,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: ab34e7629bd9e4b4ba68f270be641fbe, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 778add9c860838341a38da1620a311f2, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -229,4 +229,4 @@ MonoBehaviour:
   stackable: 1
   quantityText: {fileID: 5773592706861303769}
   maxQuantity: 999
-  id: 0
+  id: 3

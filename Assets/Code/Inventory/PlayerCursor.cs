@@ -1,15 +1,16 @@
 using System;
 using System.Collections;
-using UnityEditor.Build.Reporting;
+using Code.Inventory;
 using UnityEngine;
 
 public class PlayerCursor : MonoBehaviour
 {
+    [SerializeField] private Sprite[] _cursorVariants;
     private static Vector3 _position;
     private Item _heldItem;
     public static PlayerCursor Instance;
     private bool _holdingItem = false;
-    private float _updateCursorTic = 0.01f;
+    private Transform heldItemOrigin;
     public static Vector3 Position
     {
         get
@@ -23,68 +24,97 @@ public class PlayerCursor : MonoBehaviour
     private void Start()
     {
         Cursor.visible = false;
+        heldItemOrigin = transform.GetChild(0);
         Instance = this;
-        StartCoroutine(UpdateCursor());
         transform.SetAsLastSibling();
     }
-    public void Click(ItemSlot itemSlot)
+    public void Click(ItemSlot itemSlot, bool leftClick)
     {
-        Item storedItem = itemSlot.storedItem;
-        if(_holdingItem)
-            Place(storedItem);
+        if (!_holdingItem && !itemSlot.storingItem)
+            return;
+        
+        if(leftClick)
+            if(_holdingItem)
+                Place(itemSlot);
+            else
+                GrabItem(itemSlot);
         else
-            Grab(storedItem);
+            TakeItems(itemSlot, 1);
+    }
+
+    private void TakeItems(ItemSlot itemSlot, int amount)
+    {
+        if (!itemSlot.storingItem || !itemSlot.storedItem.stackable)
+            return;
+        if (_holdingItem)
+        {
+            if (_heldItem.Quantity > _heldItem.maxQuantity - 1)
+                return;
+            if (_heldItem.id == itemSlot.storedItem.id)
+            {
+                _heldItem.AddQuantity(amount);
+                itemSlot.storedItem.AddQuantity(-amount);
+            }
+        }
+        else
+        {
+            Transform itemSlotTransform = itemSlot.transform;
+            _heldItem = Instantiate(ItemManager.Instance.items[itemSlot.storedItem.id], 
+                itemSlotTransform.position, Quaternion.identity, itemSlotTransform.parent);
+            _heldItem.SetQuantity(amount);
+            itemSlot.storedItem.AddQuantity(-amount);
+            _holdingItem = true;
+        }
+        if (itemSlot.storedItem.Quantity < 1)
+        {
+            Destroy(itemSlot.storedItem.gameObject);
+            itemSlot.storingItem = false;
+        }
     }
     
-    private void Place(Item storedItem)
+    private void Place(ItemSlot itemSlot)
     {
-        if (storedItem == null)
+        if (!itemSlot.storingItem)
         {
-            storedItem = _heldItem;
+            itemSlot.storedItem = _heldItem;
+            itemSlot.storingItem = true;
+            _heldItem = null;
             _holdingItem = false;
+            itemSlot.storedItem.transform.position = itemSlot.transform.position;
         }
-        else if (storedItem.stackable)
+        else if(itemSlot.storedItem.id != _heldItem.id)
+            SwitchItems(itemSlot);
+        else if (itemSlot.storedItem.stackable && _heldItem.stackable)
         {
-            storedItem.Stack(_heldItem);
-            if (_heldItem == null)
+            itemSlot.storedItem.Stack(_heldItem);
+            if (_heldItem.Quantity < 1)
+            {
                 _holdingItem = false;
+                Destroy(_heldItem.gameObject);
+            }
         }
-        else
-        {
-            SwitchItems(storedItem);
-        }
-
-
-        StopCoroutine(FollowCursor());
     }
-
-    private void SwitchItems(Item itemInItemSlot)
+    private void SwitchItems(ItemSlot itemSlot)
     {
-        Item temporaryItem = itemInItemSlot;
-        itemInItemSlot = _heldItem;
+        Item temporaryItem = itemSlot.storedItem;
+        itemSlot.storedItem = _heldItem;
+        itemSlot.storingItem = true;
         _heldItem = temporaryItem;
+        itemSlot.storedItem.transform.position = itemSlot.transform.position;
     }
-    private void Grab(Item storedItem)
+    private void GrabItem(ItemSlot itemSlot)
     {
-        _heldItem = storedItem;
-        _heldItem.GetComponent<CanvasGroup>().blocksRaycasts = false;
+        _heldItem = itemSlot.storedItem;
+        itemSlot.storedItem = null;
+        itemSlot.storingItem = false;
+        
         _heldItem.transform.SetAsLastSibling();
         _holdingItem = true;
-        StartCoroutine(FollowCursor());
     }
-    private IEnumerator UpdateCursor()
+    private void Update()
     {
-        Instance.transform.position = Position;
-        yield return new WaitForSeconds(_updateCursorTic);
-        StartCoroutine(UpdateCursor());
-    }
-
-    private IEnumerator FollowCursor()
-    {
-        if (!_holdingItem)
-            yield break;
-        _heldItem.transform.position = Position;
-        yield return new WaitForSeconds(_updateCursorTic);
-        StartCoroutine(FollowCursor());
+        transform.position = Position;
+        if(_holdingItem)
+            _heldItem.transform.position = heldItemOrigin.transform.position;
     }
 }

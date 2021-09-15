@@ -6,29 +6,24 @@ using UnityEngine.UI;
 
 public class Item : MonoBehaviour
 {
-    protected enum Rarity { White, Green, Pink, Lime, Purple };
-    protected enum Type { Tile, Consumable, Furniture, Weapon, Tool, Equipable };
-
-    [SerializeField] private Rarity rarity = Rarity.White;
-    [SerializeField] private Type type;
-    [SerializeField] private int quantity;
-    [SerializeField] public bool stackable;
+    public enum Rarity { White, Green, Pink, Lime, Purple };
+    public enum Type { Tile, Consumable, Furniture, Weapon, Tool, Equipable };
     
-    protected int id;
+    [SerializeField] public Rarity rarity = Rarity.White;
+    [SerializeField] public Type type;
+    [SerializeField] private int quantity = 1;
+    [SerializeField] public bool stackable;
     [SerializeField] TextMeshProUGUI quantityText;
-    private int maxQuantity = 999;
-    public int Id
-    {
-        get => id;
-        set => id = value;
-    }
+    
+    public int maxQuantity = 999;
+    public int id;
     public int Quantity
     { 
-        get => quantity;
+        get => quantity; 
         private set
         {
             quantity = value;
-            quantityText.text = quantity.ToString();
+            quantityText.text = quantity == 1 ? "" : quantity.ToString();
         }
     }
     
@@ -36,14 +31,27 @@ public class Item : MonoBehaviour
     {
         Quantity += item.Quantity;
         if (Quantity > maxQuantity)
+        {
             item.Quantity = Quantity - maxQuantity;
+            Quantity = maxQuantity;
+        }
         else
-            Destroy(item.gameObject);
+            item.Quantity = 0;
     }
 
-    protected virtual void Start()
+    public void AddQuantity(int value)
+    {
+        Quantity += value;
+    }
+
+    public void SetQuantity(int value)
+    {
+        Quantity = value;
+    }
+    private void Awake()
     {
         SetupQuantityText();
+        gameObject.AddComponent<CanvasGroup>().blocksRaycasts = false;
     }
 
     private void SetupQuantityText()
@@ -53,7 +61,6 @@ public class Item : MonoBehaviour
             return;
         }
         quantityText = gameObject.GetComponentInChildren<TextMeshProUGUI>();
-        quantity = Random.Range(1, 1000);
         quantityText.text = quantity.ToString();
     }
 }

@@ -146,7 +146,6 @@ GameObject:
   - component: {fileID: 4257927808096344794}
   - component: {fileID: 4257927808096344795}
   - component: {fileID: -8372541187275843368}
-  - component: {fileID: -256145314698146203}
   m_Layer: 5
   m_Name: Zenith
   m_TagString: Untagged
@@ -172,7 +171,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
   m_AnchoredPosition: {x: 200.8795, y: 725.7604}
-  m_SizeDelta: {x: 35, y: 35}
+  m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.49999994, y: 0.49999994}
 --- !u!222 &4257927808096344794
 CanvasRenderer:
@@ -224,20 +223,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36cfeb74ac15c39429896898043cd730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  itemPosition: {x: 0, y: 0}
   rarity: 0
   type: 3
   quantity: 0
+  stackable: 0
   quantityText: {fileID: 0}
---- !u!225 &-256145314698146203
-CanvasGroup:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4257927808096344797}
-  m_Enabled: 1
-  m_Alpha: 1
-  m_Interactable: 1
-  m_BlocksRaycasts: 0
-  m_IgnoreParentGroups: 0
+  maxQuantity: 1
+  id: 1

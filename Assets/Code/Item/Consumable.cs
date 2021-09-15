@@ -5,8 +5,5 @@ using UnityEngine.UI;
 
 public class Consumable : Item
 {
-    protected override void Start()
-    {
-        
-    }
+   
 }
