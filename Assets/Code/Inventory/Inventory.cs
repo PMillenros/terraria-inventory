@@ -1,36 +1,44 @@
-
 using System.Collections.Generic;
 using Code.Inventory;
 using TMPro;
+
 using UnityEngine;
+
 using Random = UnityEngine.Random;
 
 public class Inventory : MonoBehaviour
 {
     protected ItemSlot[,] _itemSlots;
+    protected Vector2 previousDimensions;
     [SerializeField] protected int height = 5;
     [SerializeField] protected int width = 10;
-    protected Vector2 previousDimensions;
     [SerializeField] protected Vector2 offset, origin;
     [SerializeField] protected GameObject inventorySlot;
     [SerializeField] protected GameObject _hotbarIndex;
-    [SerializeField] protected GameObject trashSlotPrefab;
-    [SerializeField] protected GameObject titlePrefab;
-    protected GameObject trashSlot;
-    protected GameObject title;
     protected GameObject[] _hotbarIndexes;
     protected bool setupComplete;
     protected Canvas canvas;
     
     
+    
+    #region setup
+    protected void Start()
+    {
+        canvas = GetComponent<Canvas>();
+        SetupInventory();
+    }
     protected virtual void SetupInventory()
     {
         _itemSlots = new ItemSlot[width, height];
         _hotbarIndexes = new GameObject[width];
         previousDimensions.x = width;
         previousDimensions.y = height;
-        ItemManager itemManager = ItemManager.Instance;
-
+        SetupInventory();
+        SetupInventorySlots();
+        setupComplete = true;
+    }
+    protected void SetupInventorySlots()
+    {
         for (int i = 0; i < width; i++)
         {
             for (int y = 0; y < height; y++)
@@ -39,44 +47,37 @@ public class Inventory : MonoBehaviour
                     Quaternion.identity, transform).GetComponent<ItemSlot>();
                 _itemSlots[i, y].gameObject.AddComponent<ClickHandler>();
             }
-            _hotbarIndexes[i] = Instantiate(_hotbarIndex, _itemSlots[i, 0].transform.position, Quaternion.identity, transform);
-            int hotbarIndex = i;
-            hotbarIndex = hotbarIndex < width - 1? ++hotbarIndex : 0;
-            _hotbarIndexes[i].GetComponent<TextMeshProUGUI>().text = (hotbarIndex).ToString();
-            _hotbarIndexes[i].transform.position = _itemSlots[i, 0].transform.position;
         }
-        for (int i = 0; i < width; i++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                GameObject newItem = Instantiate(itemManager.items[Random.Range(0, itemManager.items.Length)].gameObject,
-                    _itemSlots[i, y].transform.position, Quaternion.identity, transform);
-                Item item = newItem.GetComponent<Item>();
-                _itemSlots[i, y].storedItem = item;
-                if(item.stackable)
-                    item.AddQuantity(Random.Range(1, item.maxQuantity + 1));
-                newItem.transform.SetAsLastSibling();
-            }
-        }
-        trashSlot = Instantiate(trashSlotPrefab, SetGridPosition(width - 1, height), Quaternion.identity, transform);
-        trashSlot.GetComponent<ItemSlot>().StoringItem = false;
-        trashSlot.AddComponent<ClickHandler>();
-        title = Instantiate(titlePrefab, _itemSlots[0, 0].transform.position, Quaternion.identity, transform);
-        setupComplete = true;
     }
+    #endregion
+
+
     private void OnValidate()
     {
         if (setupComplete)
         {
             if (previousDimensions.x != width || previousDimensions.y != height)
             {
-                ResetInventory();
+                ResetInventory(); //Experimental method
                 return;
             }
             UpdatePosition();
         }
     }
-    
+
+    #region PositionLogic
+    protected virtual void UpdatePosition()
+    {
+        canvas = GetComponent<Canvas>();
+        for (int i = 0; i < width; i++)
+        {
+            for (int y = 0; y < height; y++)
+            {
+                _itemSlots[i, y].transform.position = SetGridPosition(i, y);
+                _itemSlots[i, y].storedItem.transform.position = _itemSlots[i, y].transform.position;
+            }
+        }
+    }
     protected Vector3 SetGridPosition(int width, int height)
     {
         var pixelRect = canvas.pixelRect;
@@ -88,28 +89,7 @@ public class Inventory : MonoBehaviour
             height * -offset.y * canvasWidth / screenSizeConstant - origin.y * canvasWidth / screenSizeConstant +
             canvasHeight, 0);
     }
-    private void UpdatePosition()
-    {
-        canvas = GetComponent<Canvas>();
-        for (int i = 0; i < width; i++)
-        {
-            for (int y = 0; y < height; y++)
-            {
-                _itemSlots[i, y].transform.position = SetGridPosition(i, y);
-                _itemSlots[i, y].storedItem.transform.position = _itemSlots[i, y].transform.position;
-            }
-            _hotbarIndexes[i].transform.position = _itemSlots[i, 0].transform.position;
-        }
-
-        trashSlot.transform.position = SetGridPosition(width - 1, height);
-        title.transform.position = _itemSlots[0, 0].transform.position;
-    }
-    protected void Start()
-    {
-        canvas = GetComponent<Canvas>();
-        SetupInventory();
-    }
-
+    #endregion
     protected void ResetInventory()
     {
         PlayerCursor.Instance.transform.SetAsLastSibling();
@@ -120,7 +100,17 @@ public class Inventory : MonoBehaviour
         SetupInventory();
     }
 
-    private void CombineItems(List<Item> items)
+    #region Sorting
+    public void SortInventory()
+    {
+        List<Item> items = new List<Item>();
+        GetSortableItems(items);
+        QuickSortById(items, 0, items.Count - 1);
+        CombineItems(items);
+        QuickSortByType(items,0, items.Count - 1);
+        PickUpItems(items);
+    }
+    protected void CombineItems(List<Item> items)
     {
         for (int i = items.Count - 1; i >= 0; i--)
         {
@@ -134,10 +124,9 @@ public class Inventory : MonoBehaviour
             }
         }
     }
-    public void SortInventory()
+
+    protected void GetSortableItems(List<Item> items)
     {
-        List<Item> items = new List<Item>();
-        
         for (int i = 0; i < _itemSlots.GetLength(0); i++)
         {
             for (int y = 0; y < _itemSlots.GetLength(1); y++)
@@ -150,35 +139,27 @@ public class Inventory : MonoBehaviour
                 }
             }
         }
-        QuickSortById(items, 0, items.Count - 1);
-        for (int i = 0; i < items.Count; i++)
-        {
-            CombineItems(items);
-        }
-        QuickSortByType(items,0, items.Count - 1);
-        
-        
-        List<Item> itemType = new List<Item>();
+    }
+    public void PickUpItems(List<Item> items)
+    {
         int index = 0;
         for (int i = 0; i < _itemSlots.GetLength(1); i++)
         {
             for (int y = 0; y < _itemSlots.GetLength(0); y++)
             {
-                if (!_itemSlots[y, i].StoringItem && !_itemSlots[y, i].Favorite)
+                if (_itemSlots[y, i].StoringItem && _itemSlots[y, i].Favorite)
+                    return;
+                if (index < items.Count)
                 {
-                    if (index < items.Count)
-                    {
-                        _itemSlots[y, i].storedItem = items[index];
-                        _itemSlots[y, i].StoringItem = true;
-                        _itemSlots[y, i].storedItem.transform.position = _itemSlots[y, i].transform.position;
-                        index++;
-                    }
-                    else
-                        return;
+                    _itemSlots[y, i].storedItem = items[index];
+                    _itemSlots[y, i].StoringItem = true;
+                    _itemSlots[y, i].storedItem.transform.position = _itemSlots[y, i].transform.position;
+                    index++;
                 }
             }
         }
     }
+    
     protected void QuickSortByType(List<Item> items, int left, int right)
     {
         int pivot = (int) items[(left + right) / 2].type;
@@ -225,4 +206,5 @@ public class Inventory : MonoBehaviour
         if (left < leftHold -1) QuickSortById(items, left, leftHold - 1);
         if (right > rightHold + 1) QuickSortById(items, rightHold + 1, right);
     }
+    #endregion
 }
