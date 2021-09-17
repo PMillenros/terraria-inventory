@@ -223,10 +223,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 36cfeb74ac15c39429896898043cd730, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rarity: 0
-  type: 3
-  quantity: 0
+  rarity: 4
+  type: 5
+  quantity: 1
   stackable: 0
+  favorite: 0
   quantityText: {fileID: 0}
   maxQuantity: 1
   id: 2

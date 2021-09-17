@@ -1,13 +1,14 @@
-using System;
-using System.Collections;
+
 using Code.Inventory;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class PlayerCursor : MonoBehaviour
 {
-    [SerializeField] private Sprite[] _cursorVariants;
+    [SerializeField] private Sprite favoriteCursor, normalCursor;
+    private Image cursorImage;
     private static Vector3 _position;
-    private Item _heldItem;
+    [HideInInspector] public Item heldItem;
     public static PlayerCursor Instance;
     private bool _holdingItem = false;
     private Transform heldItemOrigin;
@@ -20,9 +21,9 @@ public class PlayerCursor : MonoBehaviour
         }
         private set => _position = value;
     }
-
     private void Start()
     {
+        cursorImage = GetComponent<Image>();
         Cursor.visible = false;
         heldItemOrigin = transform.GetChild(0);
         Instance = this;
@@ -30,9 +31,14 @@ public class PlayerCursor : MonoBehaviour
     }
     public void Click(ItemSlot itemSlot, bool leftClick)
     {
-        if (!_holdingItem && !itemSlot.storingItem)
+        if (!_holdingItem && !itemSlot.StoringItem)
             return;
-        
+        if (leftClick && Input.GetKey(KeyCode.LeftControl))
+        {
+            TrashSlot.Instance.Trash(itemSlot.storedItem, itemSlot);
+            return;
+        }
+
         if(leftClick)
             if(_holdingItem)
                 Place(itemSlot);
@@ -40,81 +46,100 @@ public class PlayerCursor : MonoBehaviour
                 GrabItem(itemSlot);
         else
             TakeItems(itemSlot, 1);
+        transform.SetAsLastSibling();
     }
 
     private void TakeItems(ItemSlot itemSlot, int amount)
     {
-        if (!itemSlot.storingItem || !itemSlot.storedItem.stackable)
+        if (!itemSlot.StoringItem || !itemSlot.storedItem.stackable)
             return;
         if (_holdingItem)
         {
-            if (_heldItem.Quantity > _heldItem.maxQuantity - 1)
+            if (heldItem.Quantity > heldItem.maxQuantity - 1)
                 return;
-            if (_heldItem.id == itemSlot.storedItem.id)
+            if (heldItem.id == itemSlot.storedItem.id)
             {
-                _heldItem.AddQuantity(amount);
+                heldItem.AddQuantity(amount);
                 itemSlot.storedItem.AddQuantity(-amount);
             }
         }
         else
         {
             Transform itemSlotTransform = itemSlot.transform;
-            _heldItem = Instantiate(ItemManager.Instance.items[itemSlot.storedItem.id], 
+            heldItem = Instantiate(ItemManager.Instance.items[itemSlot.storedItem.id], 
                 itemSlotTransform.position, Quaternion.identity, itemSlotTransform.parent);
-            _heldItem.SetQuantity(amount);
+            heldItem.SetQuantity(amount);
             itemSlot.storedItem.AddQuantity(-amount);
             _holdingItem = true;
         }
         if (itemSlot.storedItem.Quantity < 1)
         {
             Destroy(itemSlot.storedItem.gameObject);
-            itemSlot.storingItem = false;
+            itemSlot.StoringItem = false;
         }
     }
     
     private void Place(ItemSlot itemSlot)
     {
-        if (!itemSlot.storingItem)
+        if (!itemSlot.StoringItem)
         {
-            itemSlot.storedItem = _heldItem;
-            itemSlot.storingItem = true;
-            _heldItem = null;
+            itemSlot.storedItem = heldItem;
+            itemSlot.StoringItem = true;
+            heldItem = null;
             _holdingItem = false;
             itemSlot.storedItem.transform.position = itemSlot.transform.position;
         }
-        else if(itemSlot.storedItem.id != _heldItem.id)
-            SwitchItems(itemSlot);
-        else if (itemSlot.storedItem.stackable && _heldItem.stackable)
+        else if (itemSlot.storedItem.stackable && heldItem.stackable && heldItem.id == itemSlot.storedItem.id)
         {
-            itemSlot.storedItem.Stack(_heldItem);
-            if (_heldItem.Quantity < 1)
+            itemSlot.storedItem.Stack(heldItem);
+            if (heldItem.Quantity < 1)
             {
                 _holdingItem = false;
-                Destroy(_heldItem.gameObject);
+                Destroy(heldItem.gameObject);
             }
         }
+        else
+            SwapItems(itemSlot);
     }
-    private void SwitchItems(ItemSlot itemSlot)
+    private void SwapItems(ItemSlot itemSlot)
     {
         Item temporaryItem = itemSlot.storedItem;
-        itemSlot.storedItem = _heldItem;
-        itemSlot.storingItem = true;
-        _heldItem = temporaryItem;
-        itemSlot.storedItem.transform.position = itemSlot.transform.position;
+        if (itemSlot.Equals(TrashSlot.Instance))
+        {
+            Destroy(itemSlot.storedItem.gameObject);
+            itemSlot.storedItem = heldItem;
+            heldItem = null;
+            _holdingItem = false;
+            itemSlot.storedItem.transform.position = itemSlot.transform.position;
+        }
+        else
+        {
+            itemSlot.storedItem = heldItem;
+            itemSlot.StoringItem = true;
+            heldItem = temporaryItem;
+            itemSlot.storedItem.transform.position = itemSlot.transform.position;
+        }
+        
+        
     }
     private void GrabItem(ItemSlot itemSlot)
     {
-        _heldItem = itemSlot.storedItem;
+        heldItem = itemSlot.storedItem;
         itemSlot.storedItem = null;
-        itemSlot.storingItem = false;
+        itemSlot.StoringItem = false;
         
-        _heldItem.transform.SetAsLastSibling();
+        heldItem.transform.SetAsLastSibling();
         _holdingItem = true;
     }
     private void Update()
     {
         transform.position = Position;
         if(_holdingItem)
-            _heldItem.transform.position = heldItemOrigin.transform.position;
+            heldItem.transform.position = heldItemOrigin.transform.position;
+        if (Input.GetKey(KeyCode.LeftAlt))
+            cursorImage.sprite = favoriteCursor;
+        else
+            cursorImage.sprite = normalCursor;
+
     }
 }

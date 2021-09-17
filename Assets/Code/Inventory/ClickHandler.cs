@@ -1,8 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
-using System.Runtime.CompilerServices;
-using Code.Inventory;
-using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -11,12 +7,22 @@ public class ClickHandler : MonoBehaviour, IPointerClickHandler, IPointerDownHan
     private bool isPressed = false;
     private float delay = 0.2f;
     private float minDelay = 0.01f;
+    private float subtractDelay = 0.025f;
     private bool minDelayAchieved;
     public void OnPointerClick(PointerEventData eventData)
     {
+        
         bool leftClick = Input.GetMouseButtonUp(0);
         if (leftClick && eventData.pointerClick.TryGetComponent(out ItemSlot itemSlot))
-                PlayerCursor.Instance.Click(itemSlot, leftClick);
+        {
+            if (Input.GetKey(KeyCode.LeftAlt))
+            {
+                itemSlot.ToggleFavorite();
+                return;
+            }
+
+            PlayerCursor.Instance.Click(itemSlot, leftClick);
+        }
     }
     public void OnPointerDown(PointerEventData eventData)
     {
@@ -47,7 +53,7 @@ public class ClickHandler : MonoBehaviour, IPointerClickHandler, IPointerDownHan
         yield return new WaitForSeconds(delay);
         if (!minDelayAchieved && delay > minDelay)
         {
-            delay -= 0.025f;
+            delay -= subtractDelay;
         }
         else
         {

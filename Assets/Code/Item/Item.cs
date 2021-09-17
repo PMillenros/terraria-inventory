@@ -1,7 +1,5 @@
 using TMPro;
-using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.UI;
 
 
 public class Item : MonoBehaviour
@@ -13,7 +11,9 @@ public class Item : MonoBehaviour
     [SerializeField] public Type type;
     [SerializeField] private int quantity = 1;
     [SerializeField] public bool stackable;
+    [HideInInspector] public bool favorite;
     [SerializeField] TextMeshProUGUI quantityText;
+    
     
     public int maxQuantity = 999;
     public int id;
@@ -38,7 +38,6 @@ public class Item : MonoBehaviour
         else
             item.Quantity = 0;
     }
-
     public void AddQuantity(int value)
     {
         Quantity += value;
@@ -48,7 +47,7 @@ public class Item : MonoBehaviour
     {
         Quantity = value;
     }
-    private void Awake()
+    private void Start()
     {
         SetupQuantityText();
         gameObject.AddComponent<CanvasGroup>().blocksRaycasts = false;
