@@ -7,9 +7,11 @@ using UnityEngine;
 public class PlayerInventory : Inventory
 {
     [SerializeField] private GameObject trashSlotPrefab;
+    [SerializeField] protected GameObject titlePrefab;
+    
     protected GameObject trashSlot;
     protected GameObject title;
-    [SerializeField] protected GameObject titlePrefab;
+    
     #region Setup
     protected override void SetupInventory()
     {
@@ -22,8 +24,9 @@ public class PlayerInventory : Inventory
         SetUpItemIndexes();
         SetupItems();
         SetUpTrashSlot();
-        title = Instantiate(trashSlotPrefab, SetGridPosition(width - 1, height), Quaternion.identity, transform);
-        trashSlot = Instantiate(titlePrefab, _itemSlots[0, 0].transform.position, Quaternion.identity, transform);
+        title = Instantiate(titlePrefab, _itemSlots[0, 0].transform.position, Quaternion.identity, transform);
+        trashSlot = Instantiate(trashSlotPrefab, SetGridPosition(width - 1, height), Quaternion.identity, transform);
+        trashSlot.GetComponent<TrashSlot>().StoringItem = false;
     }
     private void SetupItems()
     {

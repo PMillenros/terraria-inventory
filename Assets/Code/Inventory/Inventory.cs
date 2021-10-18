@@ -8,16 +8,18 @@ using Random = UnityEngine.Random;
 
 public class Inventory : MonoBehaviour
 {
-    protected ItemSlot[,] _itemSlots;
-    protected Vector2 previousDimensions;
     [SerializeField] protected int height = 5;
     [SerializeField] protected int width = 10;
     [SerializeField] protected Vector2 offset, origin;
     [SerializeField] protected GameObject inventorySlot;
     [SerializeField] protected GameObject _hotbarIndex;
+    
+    protected ItemSlot[,] _itemSlots;
+    protected Vector2 previousDimensions;
     protected GameObject[] _hotbarIndexes;
-    protected bool setupComplete;
     protected Canvas canvas;
+    
+    protected bool setupComplete;
     
     
     
@@ -33,7 +35,6 @@ public class Inventory : MonoBehaviour
         _hotbarIndexes = new GameObject[width];
         previousDimensions.x = width;
         previousDimensions.y = height;
-        SetupInventory();
         SetupInventorySlots();
         setupComplete = true;
     }
@@ -50,17 +51,15 @@ public class Inventory : MonoBehaviour
         }
     }
     #endregion
-
-
     private void OnValidate()
     {
         if (setupComplete)
         {
-            if (previousDimensions.x != width || previousDimensions.y != height)
-            {
-                ResetInventory(); //Experimental method
-                return;
-            }
+            //if (previousDimensions.x != width || previousDimensions.y != height)
+            //{
+            //   ResetInventory(); 
+            // return;
+            //} Experimental code
             UpdatePosition();
         }
     }
@@ -84,12 +83,15 @@ public class Inventory : MonoBehaviour
         float canvasWidth = pixelRect.width;
         float canvasHeight = pixelRect.height;
         const int screenSizeConstant = 1000;
+        float screenSizeMultiplier = canvasWidth / screenSizeConstant;
         
-        return new Vector3(width * offset.x * canvasWidth / screenSizeConstant + origin.x * canvasWidth / screenSizeConstant,
-            height * -offset.y * canvasWidth / screenSizeConstant - origin.y * canvasWidth / screenSizeConstant +
+        return new Vector3(width * offset.x * screenSizeMultiplier + origin.x * screenSizeMultiplier,
+            height * -offset.y * screenSizeMultiplier - origin.y * screenSizeMultiplier +
             canvasHeight, 0);
     }
     #endregion
+
+    
     protected void ResetInventory()
     {
         PlayerCursor.Instance.transform.SetAsLastSibling();

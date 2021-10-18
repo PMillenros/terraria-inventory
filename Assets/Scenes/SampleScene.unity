@@ -527,7 +527,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 265624359}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fb59b33c1fd574544a11844b34c50038, type: 3}
+  m_Script: {fileID: 11500000, guid: 1e35204e1f9676d4fbae949114bc488b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   height: 5
@@ -630,8 +630,6 @@ MonoBehaviour:
   origin: {x: 40, y: 285}
   inventorySlot: {fileID: 7909346932618019952, guid: adfa6703054c4ee47a26dacc2e2bba4a, type: 3}
   _hotbarIndex: {fileID: 0}
-  trashSlotPrefab: {fileID: 0}
-  titlePrefab: {fileID: 0}
 --- !u!114 &821252783
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -730,8 +728,6 @@ MonoBehaviour:
   origin: {x: 40, y: 285}
   inventorySlot: {fileID: 7909346932618019952, guid: adfa6703054c4ee47a26dacc2e2bba4a, type: 3}
   _hotbarIndex: {fileID: 0}
-  trashSlotPrefab: {fileID: 0}
-  titlePrefab: {fileID: 0}
 --- !u!114 &932927808
 MonoBehaviour:
   m_ObjectHideFlags: 0

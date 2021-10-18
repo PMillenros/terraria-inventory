@@ -23,15 +23,18 @@ public class ItemSlot : MonoBehaviour
                 SetFavorite(false);
                // storedItem = null;
                return;
-            }
+            } 
             if(storedItem.favorite)
                 SetFavorite(true);
             storedItem.transform.SetParent(transform);
             storedItem.transform.parent.SetAsLastSibling();
             PlayerCursor.Instance.transform.SetAsLastSibling();
-            TrashSlot.Instance.transform.SetAsFirstSibling();
-            
         }
+    }
+    
+    protected void Awake()
+    {
+        image = GetComponent<Image>();
     }
     public bool Favorite
     {
@@ -43,11 +46,6 @@ public class ItemSlot : MonoBehaviour
         get => slotPosition;
         protected set => slotPosition = value;
     }
-    protected void Awake()
-    {
-        image = GetComponent<Image>();
-    }
-
     public void ToggleFavorite()
     {
         if (storingItem)
@@ -57,7 +55,18 @@ public class ItemSlot : MonoBehaviour
             storedItem.favorite = favorite;
         }
     }
+    
+    public void StoreItem(Item item)
+    {
+        storedItem = item;
+        item.transform.position = transform.position;
+    }
 
+    public void Switch(ItemSlot itemSlot)
+    {
+        Item tempItem = storedItem;
+        
+    }
     protected void SetFavorite(bool favorite)
     {
         image.sprite = favorite ? favoriteTexture : normalTexture;

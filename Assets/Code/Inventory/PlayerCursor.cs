@@ -1,6 +1,8 @@
-
+using System;
+using System.Collections;
 using Code.Inventory;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class PlayerCursor : MonoBehaviour
@@ -38,7 +40,6 @@ public class PlayerCursor : MonoBehaviour
             TrashSlot.Instance.Trash(itemSlot.storedItem, itemSlot);
             return;
         }
-
         if(leftClick)
             if(_holdingItem)
                 Place(itemSlot);
@@ -119,8 +120,7 @@ public class PlayerCursor : MonoBehaviour
             heldItem = temporaryItem;
             itemSlot.storedItem.transform.position = itemSlot.transform.position;
         }
-        
-        
+
     }
     private void GrabItem(ItemSlot itemSlot)
     {
