@@ -105,7 +105,7 @@ public class PlayerCursor : MonoBehaviour
     private void SwapItems(ItemSlot itemSlot)
     {
         Item temporaryItem = itemSlot.storedItem;
-        if (itemSlot.Equals(TrashSlot.Instance))
+        if (ReferenceEquals(itemSlot, TrashSlot.Instance))
         {
             Destroy(itemSlot.storedItem.gameObject);
             itemSlot.storedItem = heldItem;
@@ -119,8 +119,9 @@ public class PlayerCursor : MonoBehaviour
             itemSlot.StoringItem = true;
             heldItem = temporaryItem;
             itemSlot.storedItem.transform.position = itemSlot.transform.position;
+            heldItem.transform.SetAsLastSibling();
         }
-
+        
     }
     private void GrabItem(ItemSlot itemSlot)
     {

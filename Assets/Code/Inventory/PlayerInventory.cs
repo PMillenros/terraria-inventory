@@ -25,7 +25,6 @@ public class PlayerInventory : Inventory
         SetupItems();
         SetUpTrashSlot();
         title = Instantiate(titlePrefab, _itemSlots[0, 0].transform.position, Quaternion.identity, transform);
-        trashSlot = Instantiate(trashSlotPrefab, SetGridPosition(width - 1, height), Quaternion.identity, transform);
         trashSlot.GetComponent<TrashSlot>().StoringItem = false;
     }
     private void SetupItems()
